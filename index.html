@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FF6B00">
+  <title>Annapurna Mess</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <section id="view-home" class="view active">
+    <header class="home-header">
+      <div>
+        <div class="brand-sub">Welcome Back</div>
+        <h1 class="brand-title">Annapurna Mess</h1>
+      </div>
+      <div class="avatar">A</div>
+    </header>
+
+    <div class="clock-card">
+      <div id="clock-time">--:--</div>
+      <div id="clock-date">Loading...</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <span class="stat-icon orange">group</span>
+        <span class="stat-num" id="stat-active">-</span>
+        <span class="stat-label">Tenants</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-icon red">payments</span>
+        <span class="stat-num" id="stat-due">-</span>
+        <span class="stat-label">Pending</span>
+      </div>
+    </div>
+
+    <div class="section-title">Quick Actions</div>
+    <button class="action-btn" onclick="openModal('modal-add')">
+      <div class="icon-circle"><span class="material-icons-round">person_add</span></div>
+      <span>New Admission</span>
+    </button>
+  </section>
+
+  <section id="view-bills" class="view">
+    <header class="sticky-header">
+      <h2>Manage Bills</h2>
+      <div class="search-box">
+        <span class="material-icons-round">search</span>
+        <input type="text" id="search" placeholder="Search name..." onkeyup="filterBills()">
+      </div>
+    </header>
+    <div id="bills-list" class="list-container">
+      <div class="loader"></div>
+    </div>
+  </section>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchView('home')">
+      <span class="material-icons-round">dashboard</span>
+    </div>
+    <div class="nav-item" onclick="switchView('bills')">
+      <span class="material-icons-round">receipt_long</span>
+    </div>
+  </nav>
+
+  <div id="modal-add" class="modal">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <h3>New Admission</h3>
+      <form id="form-add">
+        <input type="text" id="add-name" placeholder="Full Name" required>
+        <input type="tel" id="add-phone" placeholder="Phone (91...)" required>
+        
+        <div class="scroll-plans">
+          <div class="chip" onclick="setPlan('Boy Mess', 2200, this)">🍔 Boy Mess</div>
+          <div class="chip" onclick="setPlan('Girl Mess', 2000, this)">🥗 Girl Mess</div>
+          <div class="chip" onclick="setPlan('Room', 2000, this)">🏠 Room</div>
+          <div class="chip" onclick="setPlan('Boy Half', 1500, this)">🍟 Boy Half</div>
+        </div>
+        <input type="hidden" id="add-type">
+        
+        <input type="number" id="add-amount" placeholder="Amount ₹" required>
+        <input type="date" id="add-date" required>
+        <button type="submit" class="btn-main">Save Customer</button>
+      </form>
+    </div>
+    <div class="modal-bg" onclick="closeModal('modal-add')"></div>
+  </div>
+
+  <div id="modal-pay" class="modal">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <h3>Record Payment</h3>
+      <input type="number" id="pay-amount" class="input-huge" placeholder="₹0">
+      <div class="btn-grid">
+        <button class="btn-sec" onclick="submitPay(false)">Partial</button>
+        <button class="btn-main" onclick="submitPay(true)">Full Paid</button>
+      </div>
+    </div>
+    <div class="modal-bg" onclick="closeModal('modal-pay')"></div>
+  </div>
+
+  <div id="toast">Saved!</div>
+  <script src="app.js"></script>
+</body>
+</html>
