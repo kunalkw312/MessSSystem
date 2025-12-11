@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#FF6B00">
   <title>Annapurna Mess</title>
   <link rel="manifest" href="manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -15,43 +15,45 @@
   <section id="view-home" class="view active">
     <header class="home-header">
       <div>
-        <div class="brand-sub">Welcome Back</div>
-        <h1 class="brand-title">Annapurna Mess</h1>
+        <h1 class="brand-title">Annapurna</h1>
+        <div class="brand-sub">Mess & Rooms</div>
       </div>
       <div class="avatar">A</div>
     </header>
 
-    <div class="clock-card">
-      <div id="clock-time">--:--</div>
-      <div id="clock-date">Loading...</div>
+    <div class="room-card">
+      <div class="room-head">
+        <span><i class="material-icons-round">bed</i> Room Status</span>
+        <span id="room-count">0 / 20</span>
+      </div>
+      <div class="progress-bg"><div class="progress-fill" id="room-bar" style="width: 0%"></div></div>
+      <div class="room-sub">10 Rooms (2 Tenants/Room)</div>
     </div>
 
     <div class="stats-grid">
       <div class="stat-box">
-        <span class="stat-icon orange">group</span>
-        <span class="stat-num" id="stat-active">-</span>
-        <span class="stat-label">Tenants</span>
+        <span class="stat-label">Total Pending</span>
+        <span class="stat-num red" id="stat-due">₹0</span>
       </div>
       <div class="stat-box">
-        <span class="stat-icon red">payments</span>
-        <span class="stat-num" id="stat-due">-</span>
-        <span class="stat-label">Pending</span>
+        <span class="stat-label">Active Tenants</span>
+        <span class="stat-num" id="stat-active">-</span>
       </div>
     </div>
 
     <div class="section-title">Quick Actions</div>
-    <button class="action-btn" onclick="openModal('modal-add')">
-      <div class="icon-circle"><span class="material-icons-round">person_add</span></div>
-      <span>New Admission</span>
+    <button class="action-btn" onclick="openModal('modal-cat')">
+      <div class="icon-circle"><span class="material-icons-round">add</span></div>
+      <span>Add New Customer</span>
     </button>
   </section>
 
   <section id="view-bills" class="view">
     <header class="sticky-header">
-      <h2>Manage Bills</h2>
-      <div class="search-box">
-        <span class="material-icons-round">search</span>
-        <input type="text" id="search" placeholder="Search name..." onkeyup="filterBills()">
+      <h2>Pending Bills</h2>
+      <div class="filter-tabs">
+        <div class="f-tab active">All</div>
+        <div class="f-tab" style="color:var(--red)">Overdue</div>
       </div>
     </header>
     <div id="bills-list" class="list-container">
@@ -59,34 +61,71 @@
     </div>
   </section>
 
+  <section id="view-history" class="view">
+    <header class="sticky-header">
+      <h2>Search & History</h2>
+      <div class="search-box">
+        <span class="material-icons-round">search</span>
+        <input type="text" id="search-inp" placeholder="Search Name, Phone..." onkeyup="globalSearch()">
+      </div>
+    </header>
+    
+    <div class="section-title" style="padding: 0 20px;">Recently Added</div>
+    <div id="recent-list" class="list-container"></div>
+  </section>
+
   <nav class="bottom-nav">
-    <div class="nav-item active" onclick="switchView('home')">
-      <span class="material-icons-round">dashboard</span>
-    </div>
-    <div class="nav-item" onclick="switchView('bills')">
-      <span class="material-icons-round">receipt_long</span>
-    </div>
+    <div class="nav-item active" onclick="switchView('home')"><span class="material-icons-round">grid_view</span></div>
+    <div class="nav-item" onclick="switchView('bills')"><span class="material-icons-round">receipt_long</span></div>
+    <div class="nav-item" onclick="switchView('history')"><span class="material-icons-round">history</span></div>
   </nav>
+
+  <div id="modal-cat" class="modal">
+    <div class="modal-sheet center-sheet">
+      <h3>Select Category</h3>
+      <div class="cat-grid">
+        <div class="cat-card" onclick="openAddForm('Mess')">
+          <span class="material-icons-round">restaurant</span>
+          <span>Mess</span>
+        </div>
+        <div class="cat-card" onclick="openAddForm('Room')">
+          <span class="material-icons-round">bed</span>
+          <span>Room</span>
+        </div>
+      </div>
+      <button class="btn-text" onclick="closeModal('modal-cat')">Cancel</button>
+    </div>
+    <div class="modal-bg"></div>
+  </div>
 
   <div id="modal-add" class="modal">
     <div class="modal-sheet">
       <div class="sheet-handle"></div>
-      <h3>New Admission</h3>
+      <h3 id="form-title">New Entry</h3>
       <form id="form-add">
         <input type="text" id="add-name" placeholder="Full Name" required>
         <input type="tel" id="add-phone" placeholder="Phone (91...)" required>
         
-        <div class="scroll-plans">
-          <div class="chip" onclick="setPlan('Boy Mess', 2200, this)">🍔 Boy Mess</div>
-          <div class="chip" onclick="setPlan('Girl Mess', 2000, this)">🥗 Girl Mess</div>
-          <div class="chip" onclick="setPlan('Room', 2000, this)">🏠 Room</div>
-          <div class="chip" onclick="setPlan('Boy Half', 1500, this)">🍟 Boy Half</div>
+        <div id="mess-options" class="scroll-plans hidden">
+          <div class="chip" onclick="setPlan('Boy Mess', 2200, this)">🍔 Boy Mess (2200)</div>
+          <div class="chip" onclick="setPlan('Boy Half', 1500, this)">🍟 Boy Half (1500)</div>
+          <div class="chip" onclick="setPlan('Girl Mess', 2000, this)">🥗 Girl Mess (2000)</div>
+          <div class="chip" onclick="setPlan('Girl Half', 1200, this)">🍎 Girl Half (1200)</div>
         </div>
+
+        <div id="room-options" class="hidden">
+           <div class="chip active" style="width:100%; text-align:center; margin-bottom:15px;">🏠 Room Rent (2000)</div>
+           <input type="number" id="add-room-no" placeholder="Enter Room Number (1-10)">
+        </div>
+
         <input type="hidden" id="add-type">
+        <input type="hidden" id="add-amount">
+        <input type="hidden" id="add-category">
         
-        <input type="number" id="add-amount" placeholder="Amount ₹" required>
+        <label style="font-size:12px; font-weight:bold; color:#888; margin-left:5px;">Joining Date</label>
         <input type="date" id="add-date" required>
-        <button type="submit" class="btn-main">Save Customer</button>
+        
+        <button type="submit" class="btn-main">Save</button>
       </form>
     </div>
     <div class="modal-bg" onclick="closeModal('modal-add')"></div>
@@ -94,7 +133,6 @@
 
   <div id="modal-pay" class="modal">
     <div class="modal-sheet">
-      <div class="sheet-handle"></div>
       <h3>Record Payment</h3>
       <input type="number" id="pay-amount" class="input-huge" placeholder="₹0">
       <div class="btn-grid">
