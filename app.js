@@ -1,149 +1,126 @@
-// 🔴 REPLACE THIS WITH YOUR NEW DEPLOYMENT URL
-const API = "https://script.google.com/macros/s/AKfycbzRDUwuBn7ffgIbbA8otOYO5e1bKT9WyNud03dffBRXmoDcRlWMNPLbmxraQXGsjCpl/exec";
-
-// 🔴 REPLACE THIS WITH YOUR UPI ID
+// 🔴 REPLACE WITH NEW DEPLOYMENT URL
+const API = "https://script.google.com/macros/s/AKfycbzRDUwuBn7ffgIbbA8otOYO5e1bKT9WyNud03dffBRXmoDcRlWMNPLbmxraQXGsjCpl/exec"; 
 const UPI = "www.kunalwadasker2003-2@oksbi"; 
 
 let dataList = [];
+let allRecents = [];
 let actRow = null;
 
-// --- INITIALIZATION ---
-window.onload = () => {
-  updateClock();
-  setInterval(updateClock, 1000);
-  fetchData();
-};
+window.onload = () => fetchData();
 
-// --- FETCH DATA (GET) ---
 async function fetchData() {
-  const listContainer = document.getElementById("bills-list");
-  // Show loader only if list is empty
-  if(dataList.length === 0) {
-      listContainer.innerHTML = '<div class="loader"></div>';
-  }
-
   try {
     const res = await fetch(API + "?action=getData");
     const json = await res.json();
     
     if (json.status === "success") {
       dataList = json.bills;
-      render(dataList);
+      allRecents = json.recents;
+      
+      renderBills(dataList);
+      renderHistory(allRecents);
       
       // Update Stats
       document.getElementById("stat-active").innerText = json.stats.active;
-      document.getElementById("stat-due").innerText = "₹" + json.stats.due;
+      document.getElementById("stat-due").innerText = "₹" + json.stats.totalDue;
+      document.getElementById("room-count").innerText = json.stats.bedsOccupied + " / 20";
+      document.getElementById("room-bar").style.width = (json.stats.bedsOccupied / 20 * 100) + "%";
     }
-  } catch (e) { 
-    console.error("Fetch Error:", e);
-    // Only show error if list is empty
-    if(dataList.length === 0) {
-      listContainer.innerHTML = "<p style='text-align:center; margin-top:20px;'>Failed to load. Check connection.</p>";
-    }
-  }
+  } catch (e) { console.error(e); }
 }
 
-// --- RENDER BILLS ---
-function render(list) {
+function renderBills(list) {
   const box = document.getElementById("bills-list");
-  if (list.length === 0) { 
-    box.innerHTML = "<p style='text-align:center;color:#999;margin-top:50px'>All Paid! 🎉</p>"; 
-    return; 
-  }
+  if (list.length === 0) { box.innerHTML = "<p style='text-align:center;color:#999;margin-top:40px'>All Clear! 🎉</p>"; return; }
   
   box.innerHTML = list.map(d => {
-    let msg = `Hello ${d.name}, Bill Due: ₹${d.due}. Please pay to: ${UPI}`;
+    let msg = `Hello ${d.name}, Total Due: ₹${d.due}. Please pay to: ${UPI}`;
     let link = `https://wa.me/${d.phone}?text=${encodeURIComponent(msg)}`;
-    let badge = d.color === 'red' ? 'bg-red' : 'bg-blue';
-    let status = d.color === 'red' ? 'OVERDUE' : `Due: ${d.day}th`;
-    
+    let statusClass = `status-${d.color}`; 
+    let roomBadge = d.room ? `<span class="badge" style="background:#EEE; color:#333; margin-left:5px;">Room ${d.room}</span>` : "";
+
     return `
-    <div class="card">
+    <div class="card ${statusClass}">
       <div class="card-top">
         <div>
-          <div class="name">${d.name}</div>
-          <div class="type">${d.type}</div>
+           <div class="name">${d.name} ${roomBadge}</div>
+           <div class="type">${d.type}</div>
         </div>
-        <div class="badge ${badge}">${status}</div>
+        <div class="badge" style="background:var(--${d.color}); color:white; height:fit-content">${d.color.toUpperCase()}</div>
       </div>
-      <div class="amt-row">
-        <div class="type">Amount Due</div>
-        <div class="due-amt">₹${d.due}</div>
-      </div>
+      <div class="amt">₹${d.due}</div>
       <div class="actions">
-        <a href="${link}" class="btn-icon bg-wa"><span class="material-icons-round">whatsapp</span></a>
-        <button class="btn-icon bg-pay" onclick="prePay(${d.row}, ${d.due})">Pay</button>
-        <button class="btn-icon bg-part" onclick="prePay(${d.row}, ${d.due})">Partial</button>
-        <button class="btn-icon bg-del" onclick="del(${d.row})"><span class="material-icons-round">delete</span></button>
+        <a href="${link}" class="btn-act" style="background:#DCFCE7; color:#16A34A; text-align:center; text-decoration:none; display:block; padding-top:12px;">WhatsApp</a>
+        <button class="btn-act bg-part" onclick="prePay(${d.row}, ${d.due})">Partial</button>
+        <button class="btn-act bg-pay" onclick="prePay(${d.row}, ${d.due})">Paid</button>
       </div>
     </div>`;
   }).join('');
 }
 
-// --- NAVIGATION ---
-function switchView(id) {
-  document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
-  
-  document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-
-  if(id === 'bills') fetchData();
+function renderHistory(list) {
+  const box = document.getElementById("recent-list");
+  if(!list) return;
+  box.innerHTML = list.map(r => `
+    <div style="background:white; padding:15px; border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+       <div><div style="font-weight:700">${r.name}</div><div style="font-size:12px; color:#999">${r.type}</div></div>
+       <div style="font-size:12px; font-weight:600; background:#F8F9FA; padding:5px 10px; border-radius:8px;">${r.date}</div>
+    </div>
+  `).join('');
 }
 
-// --- CLOCK ---
-function updateClock() {
-  const d = new Date();
-  document.getElementById('clock-time').innerText = d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit', hour12:true});
-  document.getElementById('clock-date').innerText = d.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'});
+// --- ADD FORM LOGIC ---
+let selectedCat = "";
+
+function openAddForm(cat) {
+  selectedCat = cat;
+  closeModal('modal-cat');
+  openModal('modal-add');
+  document.getElementById('form-title').innerText = "Add " + cat;
+  document.getElementById('add-category').value = cat;
+
+  if(cat === "Mess") {
+    document.getElementById('mess-options').classList.remove('hidden');
+    document.getElementById('room-options').classList.add('hidden');
+  } else {
+    document.getElementById('mess-options').classList.add('hidden');
+    document.getElementById('room-options').classList.remove('hidden');
+    setPlan('Room Rent', 2000, null); // Auto set room price
+  }
 }
 
-// --- ADD CUSTOMER (POST) ---
 function setPlan(type, amt, el) {
   document.getElementById('add-type').value = type;
   document.getElementById('add-amount').value = amt;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
+  if(el) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
 }
 
 document.getElementById('form-add').onsubmit = async (e) => {
   e.preventDefault();
+  toast("Saving...");
   
-  const btn = document.querySelector("#form-add .btn-main");
-  const originalText = btn.innerText;
-  btn.innerText = "Saving...";
-  btn.disabled = true;
-
   const payload = {
     action: "add",
     name: document.getElementById('add-name').value,
     phone: document.getElementById('add-phone').value,
     type: document.getElementById('add-type').value,
     amount: document.getElementById('add-amount').value,
-    date: document.getElementById('add-date').value
+    date: document.getElementById('add-date').value,
+    category: document.getElementById('add-category').value,
+    roomNo: document.getElementById('add-room-no').value
   };
 
-  try {
-    // We send as standard POST body stringified
-    await fetch(API, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-    
-    closeModal('modal-add');
-    document.getElementById('form-add').reset();
-    toast("Customer Added!");
-    fetchData(); // Refresh list immediately
-  } catch (error) {
-    console.error(error);
-    toast("Error Saving");
-  } finally {
-    btn.innerText = originalText;
-    btn.disabled = false;
-  }
+  await fetch(API, { method: "POST", body: JSON.stringify(payload) });
+  closeModal('modal-add');
+  document.getElementById('form-add').reset();
+  toast("Added Successfully");
+  fetchData();
 };
 
-// --- PAYMENT HANDLING ---
+// --- PAY & SEARCH ---
 function prePay(r, due) {
   actRow = r;
   document.getElementById('pay-amount').value = due;
@@ -151,63 +128,35 @@ function prePay(r, due) {
 }
 
 async function submitPay(full) {
-  const amt = document.getElementById('pay-amount').value;
-  if(!amt) return toast("Enter Amount");
-
   closeModal('modal-pay');
-  toast("Recording Payment...");
-
-  try {
-    await fetch(API, {
-      method: "POST", 
-      body: JSON.stringify({
-        action: "pay", 
-        row: actRow, 
-        amount: amt, 
-        isFull: full
-      })
-    });
-    toast("Payment Success!");
-    fetchData();
-  } catch (e) {
-    toast("Error Paying");
-  }
+  toast("Updating...");
+  await fetch(API, { method: "POST", body: JSON.stringify({action:"pay", row:actRow, amount:document.getElementById('pay-amount').value, isFull:full}) });
+  fetchData();
 }
 
-// --- DELETE HANDLING ---
-async function del(r) {
-  if(!confirm("Are you sure you want to delete this record?")) return;
-  toast("Deleting...");
+function globalSearch() {
+  const term = document.getElementById('search-inp').value.toLowerCase();
   
-  try {
-    await fetch(API, {
-      method: "POST", 
-      body: JSON.stringify({
-        action: "delete", 
-        row: r
-      })
-    });
-    toast("Deleted Successfully");
-    fetchData();
-  } catch (e) {
-    toast("Error Deleting");
+  // Filter Bills
+  const filteredBills = dataList.filter(i => i.name.toLowerCase().includes(term) || i.phone.includes(term));
+  
+  // Filter History
+  const filteredRecents = allRecents.filter(i => i.name.toLowerCase().includes(term));
+  
+  if(document.getElementById('view-bills').classList.contains('active')) {
+     renderBills(filteredBills);
+  } else {
+     renderHistory(filteredRecents);
   }
 }
 
-// --- SEARCH ---
-function filterBills() {
-  const term = document.getElementById('search').value.toLowerCase();
-  const filtered = dataList.filter(i => i.name.toLowerCase().includes(term));
-  render(filtered);
+// --- UTILS ---
+function switchView(id) {
+  document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+  event.currentTarget.classList.add('active');
 }
-
-// --- UI UTILITIES ---
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.innerText = msg; 
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 3000);
-}
+function toast(msg) { const t = document.getElementById('toast'); t.innerText=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
