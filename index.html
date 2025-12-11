@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#FF6B00">
   <title>Annapurna Mess</title>
   <link rel="manifest" href="manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -18,7 +18,10 @@
         <h1 class="brand-title">Annapurna</h1>
         <div class="brand-sub">Mess & Rooms</div>
       </div>
-      <div class="avatar">A</div>
+      <div class="clock-display">
+        <div id="clock-time">--:--</div>
+        <div id="clock-date">Loading...</div>
+      </div>
     </header>
 
     <div class="room-card">
@@ -42,7 +45,7 @@
     </div>
 
     <div class="section-title">Quick Actions</div>
-    <button class="action-btn" onclick="openModal('modal-cat')">
+    <button class="action-btn" onclick="openModalCat()">
       <div class="icon-circle"><span class="material-icons-round">add</span></div>
       <span>Add New Customer</span>
     </button>
@@ -51,9 +54,9 @@
   <section id="view-bills" class="view">
     <header class="sticky-header">
       <h2>Pending Bills</h2>
-      <div class="filter-tabs">
-        <div class="f-tab active">All</div>
-        <div class="f-tab" style="color:var(--red)">Overdue</div>
+      <div class="search-box">
+        <span class="material-icons-round">search</span>
+        <input type="text" id="search-inp-bills" placeholder="Filter bills..." onkeyup="globalSearch('bills')">
       </div>
     </header>
     <div id="bills-list" class="list-container">
@@ -63,14 +66,12 @@
 
   <section id="view-history" class="view">
     <header class="sticky-header">
-      <h2>Search & History</h2>
+      <h2>History</h2>
       <div class="search-box">
         <span class="material-icons-round">search</span>
-        <input type="text" id="search-inp" placeholder="Search Name, Phone..." onkeyup="globalSearch()">
+        <input type="text" id="search-inp-hist" placeholder="Search history..." onkeyup="globalSearch('history')">
       </div>
     </header>
-    
-    <div class="section-title" style="padding: 0 20px;">Recently Added</div>
     <div id="recent-list" class="list-container"></div>
   </section>
 
@@ -95,7 +96,7 @@
       </div>
       <button class="btn-text" onclick="closeModal('modal-cat')">Cancel</button>
     </div>
-    <div class="modal-bg"></div>
+    <div class="modal-bg" onclick="closeModal('modal-cat')"></div>
   </div>
 
   <div id="modal-add" class="modal">
